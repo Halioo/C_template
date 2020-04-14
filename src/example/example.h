@@ -24,7 +24,7 @@
 
 #ifndef EXAMPLE_H
 #define EXAMPLE_H
-#include "../util.h"
+#include "util.h"
 #include "mqueue.h"
 #include "../watchdog/watchdog.h"
 

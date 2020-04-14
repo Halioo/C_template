@@ -40,7 +40,7 @@
  */
 #define TIME_UNIT 1000 // Miliseconds
 
-#include "../../util.h"
+#include "util.h"
 #include "watchdog.h"
 #include <malloc.h>
 #include <time.h>
@@ -74,7 +74,7 @@ Watchdog * WatchdogConstruct (uint32_t thisDelay, WatchdogCallback callback, voi
 
     // allocates and initializes the watchdog's attributes
     result = (Watchdog *) malloc(sizeof(Watchdog));
-    STOP_ON_ERROR(result == NULL, "Error during memory allocation of the watchdog : ");
+    STOP_ON_ERROR(result == NULL, "Error during memory allocation of the watchdog : ")
 
     result->myDelay = thisDelay;
     result->myCallback = callback;
@@ -91,7 +91,7 @@ Watchdog * WatchdogConstruct (uint32_t thisDelay, WatchdogCallback callback, voi
 
 
     int err = timer_create(CLOCK_REALTIME, &event, &result->timer);
-    STOP_ON_ERROR(err != 0, "Error while creating the timer : ");
+    STOP_ON_ERROR(err != 0, "Error while creating the timer : ")
     return result;
 }
 
@@ -107,7 +107,7 @@ void WatchdogStart (Watchdog *this)
 
     // Starts the POSIX timer
     int err = timer_settime(this->timer, 0, &time, NULL) ;
-    STOP_ON_ERROR(err == -1, "Error when setting POSIX timer time : ");
+    STOP_ON_ERROR(err == -1, "Error when setting POSIX timer time : ")
 }
 
 void WatchdogCancel (Watchdog *this)
@@ -120,7 +120,7 @@ void WatchdogCancel (Watchdog *this)
 
     // Disarms the POSIX timer
     int err = timer_settime(this->timer, 0, &time, NULL);
-    STOP_ON_ERROR(err == -1, "Error when disarming the POSIX timer : ");
+    STOP_ON_ERROR(err == -1, "Error when disarming the POSIX timer : ")
 }
 
 void WatchdogDestroy (Watchdog *this)
@@ -128,7 +128,7 @@ void WatchdogDestroy (Watchdog *this)
     // Disarms and deletes the POSIX timer
     WatchdogCancel(this);
     int err = timer_delete(this->timer);
-    STOP_ON_ERROR(err==-1, "Error when deleting the POSIX timer : ");
+    STOP_ON_ERROR(err==-1, "Error when deleting the POSIX timer : ")
 
     // Then we can free memory
     free (this);
