@@ -9,7 +9,7 @@
  */
 
 #include <pthread.h>
-#include "util.h"
+#include "../util.h"
 #include "example.h"
 
 /**
@@ -67,48 +67,36 @@ static int exampleCounter = 0;
 /**
  * @brief Enumeration of all the states that can be taken by the state machine
  */
-typedef enum {
-    S_FORGET = 0,   ///< Nothing happens
-
-    // TODO : Add here the states corresponding to your state machine. Do not remove S_FORGET, S_DEATH and NB_STATE
-    S_IDLE,         ///< Idle state
-    S_RUNNING,      ///< Running state
-
-    S_DEATH,        ///< Transition state for stopping the state machine
-    NB_STATE        ///< Number of states
-} State;
+ ENUM_DECL(State,
+     S_FORGET,      ///< Nothing happens
+     S_IDLE,        ///< Idle state
+     S_RUNNING,     ///< Running state
+     S_DEATH        ///< Transition state for stopping the state machine
+ )
 
 
 /**
  * @brief Enumaration of all the possible actions called by the state machine
  */
-typedef enum {
-    A_NOP = 0,              ///< Nothing happens
-
-    // TODO : Add here the actions corresponding to your state machine. Do not remove A_NOP, A_KILL and NB_ACTIONS
-
-    A_EXAMPLE1_FROM_RUNNING,///< Action called when passing from the running state to the example1 state
-    A_EXAMPLE1_FROM_IDLE,   ///< Action called when passing from the idle state to the running state
-    A_EXAMPLE2,             ///< Action called when the Example2 event happens
-
-    A_KILL,                 ///< Kills the state machine
-    NB_ACTION               ///< Number of actions
-} Action;
+ENUM_DECL(Action,
+    A_NOP,                      ///< Nothing happens
+    A_EXAMPLE1_FROM_RUNNING,    ///< Action called when passing from the running state to the example1 state
+    A_EXAMPLE1_FROM_IDLE,       ///< Action called when passing from the idle state to the running state
+    A_EXAMPLE2,                 ///< Action called when the Example2 event happens
+    A_KILL                     ///< Kills the state machine
+)
 
 
 /**
  * @brief Enumeration of all the possible events that triggers the state machine
  */
-typedef enum {
-    E_NOP = 0,  ///< Do nothing
-
-    // TODO : Add here the events corresponding to your state machine. Do not remove E_NOP, E_KILL and NB_EVENT
+ENUM_DECL(Event,
+    E_NOP,      ///< Do nothing
     E_EXAMPLE1, ///< Event example 1
     E_EXAMPLE2, ///< Event example 2
-
     E_KILL,     ///< Kills the state machine
     NB_EVENT    ///< Number of events
-} Event;
+)
 
 
 /**
@@ -123,8 +111,7 @@ typedef struct {
 /**
  * @brief Structure of a message sent in the mailbox
  */
-typedef struct
-{
+typedef struct {
     Event event; ///< Event sent in the message
 
     // TODO : Add here the parameters you want to be able to send through the mailbox. Do not remove the Event parameter.
@@ -230,7 +217,7 @@ static Transition stateMachine[NB_STATE][NB_EVENT] = { // TODO : fill the state 
  */
 static void mailboxInit(Example * this) {
     int err = sprintf(this->queueName, NAME_MQ_BOX, exampleCounter);
-    TRACE("Defined the Queue name : %s\n", this->queueName)
+    TRACE("[MAILBOX] Defined the Queue name : %s\n", this->queueName)
     STOP_ON_ERROR(err < 0, "Error when setting the queueName")
 
     TRACE("[MAILBOX] Oppening the mailbox %s\n", this->queueName)

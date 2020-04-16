@@ -1,6 +1,18 @@
 #include <stdio.h>
+#include <string.h>
+#include "example/example.h"
+
+
+
 
 int main() {
-    printf("Hello, World!\n");
-    return 0;
+
+     Example * test = ExampleNew();
+     ExampleStart(test);
+
+     ExampleEventOne(test, 1);
+     ExampleEventTwo(test, 2);
+
+     ExampleStop(test);
+     ExampleFree(test);
 }

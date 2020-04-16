@@ -6,10 +6,13 @@ set(PROSE_PROJECT_NAME C_template)
 
 project(${PROSE_PROJECT_NAME} C)
 
-add_library(util SHARED util.h)
-set_target_properties(util PROPERTIES LINKER_LANGUAGE C)
-target_include_directories(util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+
+#add_library(util util.h)
+#set_target_properties(util PROPERTIES LINKER_LANGUAGE C)
+#target_include_directories(util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(src)
 
-
+#target_link_libraries(${PROSE_PROJECT_NAME} util)
+target_link_libraries(${PROSE_PROJECT_NAME} pthread rt)
