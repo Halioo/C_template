@@ -65,46 +65,45 @@ static int exampleCounter = 0;
 /*----------------------- TYPE DEFINITIONS -----------------------*/
 
 /**
- * @brief Enumeration of all the states that can be taken by the state machine
+ * @brief Enumeration of all the STATEs that can be taken by the STATE machine
  */
- ENUM_DECL(State,
+ ENUM_DECL(STATE,
      S_FORGET,      ///< Nothing happens
-     S_IDLE,        ///< Idle state
-     S_RUNNING,     ///< Running state
-     S_DEATH        ///< Transition state for stopping the state machine
+     S_IDLE,        ///< Idle STATE
+     S_RUNNING,     ///< Running STATE
+     S_DEATH        ///< Transition STATE for stopping the STATE machine
  )
 
 
 /**
- * @brief Enumaration of all the possible actions called by the state machine
+ * @brief Enumaration of all the possible ACTIONs called by the STATE machine
  */
-ENUM_DECL(Action,
+ENUM_DECL(ACTION,
     A_NOP,                      ///< Nothing happens
-    A_EXAMPLE1_FROM_RUNNING,    ///< Action called when passing from the running state to the example1 state
-    A_EXAMPLE1_FROM_IDLE,       ///< Action called when passing from the idle state to the running state
-    A_EXAMPLE2,                 ///< Action called when the Example2 event happens
-    A_KILL                     ///< Kills the state machine
+    A_EXAMPLE1_FROM_RUNNING,    ///< ACTION called when passing from the running STATE to the example1 STATE
+    A_EXAMPLE1_FROM_IDLE,       ///< ACTION called when passing from the idle STATE to the running STATE
+    A_EXAMPLE2,                 ///< ACTION called when the Example2 EVENT happens
+    A_KILL                      ///< Kills the STATE machine
 )
 
 
 /**
- * @brief Enumeration of all the possible events that triggers the state machine
+ * @brief Enumeration of all the possible EVENTs that triggers the STATE machine
  */
-ENUM_DECL(Event,
+ENUM_DECL(EVENT,
     E_NOP,      ///< Do nothing
-    E_EXAMPLE1, ///< Event example 1
-    E_EXAMPLE2, ///< Event example 2
-    E_KILL,     ///< Kills the state machine
-    NB_EVENT    ///< Number of events
+    E_EXAMPLE1, ///< EVENT example 1
+    E_EXAMPLE2, ///< EVENT example 2
+    E_KILL     ///< Kills the STATE machine
 )
 
 
 /**
- * @brief Transition structure of the state machine
+ * @brief Transition structure of the STATE machine
  */
 typedef struct {
-    State nextState; ///< Next state of the state machine
-    Action action;   ///< Action done before going in the next state
+    STATE nextState; ///< Next STATE of the STATE machine
+    ACTION action;   ///< ACTION done before going in the next STATE
 } Transition;
 
 
@@ -112,16 +111,16 @@ typedef struct {
  * @brief Structure of a message sent in the mailbox
  */
 typedef struct {
-    Event event; ///< Event sent in the message
+    EVENT event; ///< EVENT sent in the message
 
-    // TODO : Add here the parameters you want to be able to send through the mailbox. Do not remove the Event parameter.
+    // TODO : Add here the parameters you want to be able to send through the mailbox. Do not remove the EVENT parameter.
     int param;  ///< Example of a possible parameter
     int param2; ///< Example of an other parameter
 } Msg;
 
 
 /**
- * @brief Wrapper enum. It is used to send events and parameters in a mailBox.
+ * @brief Wrapper enum. It is used to send EVENTs and parameters in a mailBox.
  */
 typedef union {
     Msg msg; ///< Message sent, interpreted as a structure
@@ -134,9 +133,9 @@ typedef union {
  */
 struct Example_t {
     pthread_t threadId; ///< Pthread identifier for the active function of the class.
-    State state;        ///< Actual state of the state machine
+    STATE state;        ///< Actual STATE of the STATE machine
     Msg msg;            ///< Structure used to pass parameters to the functions pointer.
-    char queueName[SIZE_BOX_NAME]; ///< Name of the queue used to send events.
+    char queueName[SIZE_BOX_NAME]; ///< Name of the queue used to send EVENTs.
     char nameTask[SIZE_TASK_NAME]; ///< Name of the task
     mqd_t mq;
 
@@ -149,61 +148,61 @@ struct Example_t {
 
 /*----------------------- STATIC FUNCTIONS PROTOTYPES -----------------------*/
 
-/*------------- Action functions -------------*/
-// TODO : put here all the action functions prototypes
+/*------------- ACTION functions -------------*/
+// TODO : put here all the ACTION functions prototypes
 /**
  * @brief Function called when nothing needs to be done
  */
-static void actionNop(Example * this);
+static void ActionNop(Example * this);
 
 
 /**
- * @brief Changes the state of the state machine to S_DEATH
+ * @brief Changes the STATE of the STATE machine to S_DEATH
  */
-static void actionKill(Example * this);
+static void ActionKill(Example * this);
 
 
 /**
- * @brief Function called when there is the event Example 1 and when the state is Idle
+ * @brief Function called when there is the EVENT Example 1 and when the STATE is Idle
  */
-static void actionExample1FromIdle(Example * this);
+static void ActionExample1FromIdle(Example * this);
 
 
 /**
- * @brief Function called when there is the event Example 1 and when the state is Running
+ * @brief Function called when there is the EVENT Example 1 and when the STATE is Running
  */
-static void actionExample1FromRunning(Example * this);
+static void ActionExample1FromRunning(Example * this);
 
 
 /**
- * @brief Function called when there is the event Example 2 and when the state is Running
+ * @brief Function called when there is the EVENT Example 2 and when the STATE is Running
  */
-static void actionExample2(Example * this);
+static void ActionExample2(Example * this);
 
 
 /*----------------------- STATE MACHINE DECLARATION -----------------------*/
 
 /**
- * @def Function pointer used to call the actions of the state machine.
+ * @def Function pointer used to call the ACTIONs of the STATE machine.
  */
 typedef void (*ActionPtr)(Example*);
 
 /**
- * @brief Function pointer array used to call the actions of the state machine.
+ * @brief Function pointer array used to call the ACTIONs of the STATE machine.
  */
-static const ActionPtr actionPtr[NB_ACTION] = { // TODO : add all the function pointers corresponding to the Action enum in the right order.
-        &actionNop,
-        &actionExample1FromRunning,
-        &actionExample1FromIdle,
-        &actionExample2,
-        &actionKill
+static const ActionPtr actionPtr[NB_ACTION] = { // TODO : add all the function pointers corresponding to the ACTION enum in the right order.
+        &ActionNop,
+        &ActionExample1FromRunning,
+        &ActionExample1FromIdle,
+        &ActionExample2,
+        &ActionKill
 };
 
 
 /**
- * @brief State machine of the Example class
+ * @brief STATE machine of the Example class
  */
-static Transition stateMachine[NB_STATE][NB_EVENT] = { // TODO : fill the state machine
+static Transition stateMachine[NB_STATE][NB_EVENT] = { // TODO : fill the STATE machine
         [S_IDLE][E_EXAMPLE1]    = {S_RUNNING,	A_EXAMPLE1_FROM_IDLE},
         [S_RUNNING][E_EXAMPLE1] = {S_RUNNING, A_EXAMPLE1_FROM_RUNNING},
         [S_RUNNING][E_EXAMPLE2] = {S_IDLE, A_EXAMPLE2}
@@ -268,13 +267,13 @@ static void mailboxSendMsg(Example *this, Msg msg) {
 }
 
 /**
- * @brief Sends a stop event to the queue
+ * @brief Sends a stop EVENT to the queue
  *
  * @note There is no specific content in the message, so there
  * is no need to specify any argument.
  */
 static void mailboxSendStop(Example *this) {
-    TRACE("[MAILBOX] Sending stop event to the queue %s\n", this->queueName)
+    TRACE("[MAILBOX] Sending stop EVENT to the queue %s\n", this->queueName)
     Msg msg = {.event = E_KILL};
     mailboxSendMsg(this, msg);
 }
@@ -287,42 +286,42 @@ static void mailboxSendStop(Example *this) {
  */
 static void mailboxReceive(Example *this, Wrapper *wrapper) {
     TRACE("[MAILBOX] Receiving a message from %s\n", this->queueName)
-    int err = mq_receive(this->mq, (char *) wrapper, sizeof(Wrapper), 0);
+    int err = mq_receive(this->mq, wrapper->toString, sizeof(Wrapper), 0);
     STOP_ON_ERROR(err == -1, "Error when receiving a message : ")
 }
 
 
 /* ----------------------- ACTIONS FUNCTIONS ----------------------- */
 
-// TODO : Write all the action functions
+// TODO : Write all the ACTION functions
 
-static void actionExample1FromRunning(Example * this) {
+static void ActionExample1FromRunning(Example * this) {
     TRACE("[ActionEx1FromRunning] - %d\n", this->msg.param)
 }
 
 
-static void actionExample1FromIdle(Example * this) {
+static void ActionExample1FromIdle(Example * this) {
     TRACE("[ActionEx1FromIdle] - %d\n", this->msg.param)
 }
 
 
-static void actionExample2(Example * this) {
+static void ActionExample2(Example * this) {
     TRACE("[ActionEx2] - %d\n", this->msg.param2)
 }
 
 
-static void actionNop(Example * this) {
+static void ActionNop(Example * this) {
     TRACE("[ActionNOP]\n")
 }
 
-static void actionKill(Example * this) {
+static void ActionKill(Example * this) {
     TRACE("[Action Kill]\n")
     this->state = S_DEATH;
 }
 
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
-// TODO : write the events functions
+// TODO : write the EVENTs functions
 
 void ExampleEventOne(Example * this, int param) {
     Msg message = {
@@ -345,7 +344,7 @@ void ExampleEventTwo(Example * this, int param) {
 /*
 extern void ExampleTimeout(Watchdog * wd, void * caller) {
     Msg message = {
-        .event = E_EXAMPLE2,
+        .EVENT = E_EXAMPLE2,
     };
 
     Example * this = caller;
@@ -360,24 +359,24 @@ extern void ExampleTimeout(Watchdog * wd, void * caller) {
  * @brief Main running function of the Example class
  */
 static void ExampleRun(Example * this) {
-    Action action;
-    State state;
+    ACTION action;
+    STATE state;
     Wrapper wrapper;
 
     TRACE("RUN - Queue name : %s\n", this->queueName)
 
     while (this->state != S_DEATH) {
-        mailboxReceive(this, &wrapper); ///< Receiving an event from the mailbox
+        mailboxReceive(this, &wrapper); ///< Receiving an EVENT from the mailbox
 
-        if (wrapper.msg.event == E_KILL) { // If we received the stop event, we do nothing and we change the state to death.
+        if (wrapper.msg.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
             this->state = S_DEATH;
 
         } else {
             action = stateMachine[this->state][wrapper.msg.event].action;
-            TRACE("Action %d\n", action)
+            TRACE("Action %s\n", ACTIONtoString[action])
 
             state = stateMachine[this->state][wrapper.msg.event].nextState;
-            TRACE("State %d\n", state)
+            TRACE("State %s\n", STATEtoString[state])
 
             if (state != S_FORGET) {
                 this->msg = wrapper.msg;

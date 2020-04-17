@@ -56,8 +56,8 @@
 
 
 #define ENUM_DECL(name, ARGS...) \
-    typedef enum { toEnum(ARGS) name##_NB } name; \
-    static const char * name##_toString[] = { toString(ARGS) #name };
+    typedef enum { toEnum(ARGS) NB_##name } name; \
+    static const char * name##toString[] = { toString(ARGS) #name };
 
 
 /**
