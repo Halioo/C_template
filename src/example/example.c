@@ -67,12 +67,13 @@ static int exampleCounter = 0;
 /**
  * @brief Enumeration of all the STATEs that can be taken by the STATE machine
  */
- ENUM_DECL(STATE,
-     S_FORGET,      ///< Nothing happens
-     S_IDLE,        ///< Idle STATE
-     S_RUNNING,     ///< Running STATE
-     S_DEATH        ///< Transition STATE for stopping the STATE machine
- )
+ENUM_DECL(STATE,
+    S_FORGET,      ///< Nothing happens
+    S_IDLE,        ///< Idle STATE
+    S_RUNNING,     ///< Running STATE
+    S_DEATH        ///< Transition STATE for stopping the STATE machine
+)
+
 
 
 /**
@@ -373,6 +374,7 @@ static void ExampleRun(Example * this) {
 
         } else {
             action = stateMachine[this->state][wrapper.msg.event].action;
+
             TRACE("Action %s\n", ACTIONtoString[action])
 
             state = stateMachine[this->state][wrapper.msg.event].nextState;
