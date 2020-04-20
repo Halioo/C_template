@@ -1,9 +1,5 @@
-#include <stdio.h>
-#include <string.h>
+
 #include "example/example.h"
-
-
-
 
 int main() {
 

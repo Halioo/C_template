@@ -9,7 +9,9 @@
  */
 
 #include <pthread.h>
-#include "../util.h"
+#include "mailbox.h"
+
+#include "util.h"
 #include "example.h"
 
 /**
@@ -20,46 +22,15 @@ static int exampleCounter = 0;
 /* ----------------------- MAILBOX DEFINITIONS -----------------------*/
 
 /**
- * @def Name of the mailboxes. Each instance will have this name,
- * followed by the number of the instance
- */
-#define NAME_MQ_BOX "/mboxExample%d"
-
-/**
  * @def Name of the task. Each instance will have this name,
  * followed by the number of the instance
  */
 #define NAME_TASK "ExampleTask%d"
 
-
-/**
- * @def Size of the mailbox name
- */
-#define SIZE_BOX_NAME 20
-
 /**
  * @def Size of a task name
  */
 #define SIZE_TASK_NAME 20
-
-
-/**
- * @def MAX_MESSAGE_LENGTH
- *
- * The maximum length of a message, including the null terminal character
- */
-#define MAX_MESSAGE_LENGTH 1024
-
-/**
- * @def MQ_MAX_MESSAGES
- *
- * The maximum number of message the queue can handle at one time
- *
- * By default, cannot be higher than 10, unless you change this
- * value into /proc/sys/fs/mqueue/msg_max
- */
-#define MQ_MAX_MESSAGES (10)
-
 
 
 /*----------------------- TYPE DEFINITIONS -----------------------*/
@@ -73,7 +44,6 @@ ENUM_DECL(STATE,
     S_RUNNING,     ///< Running STATE
     S_DEATH        ///< Transition STATE for stopping the STATE machine
 )
-
 
 
 /**
@@ -119,7 +89,6 @@ typedef struct {
     int param2; ///< Example of an other parameter
 } Msg;
 
-
 /**
  * @brief Wrapper enum. It is used to send EVENTs and parameters in a mailBox.
  */
@@ -136,10 +105,8 @@ struct Example_t {
     pthread_t threadId; ///< Pthread identifier for the active function of the class.
     STATE state;        ///< Actual STATE of the STATE machine
     Msg msg;            ///< Structure used to pass parameters to the functions pointer.
-    char queueName[SIZE_BOX_NAME]; ///< Name of the queue used to send EVENTs.
     char nameTask[SIZE_TASK_NAME]; ///< Name of the task
-    mqd_t mq;
-
+    Mailbox * mb;
 
     // TODO : add here the instance variables you need to use.
     //Watchdog * wd; ///< Example of a watchdog implementation
@@ -210,88 +177,6 @@ static Transition stateMachine[NB_STATE][NB_EVENT] = { // TODO : fill the STATE 
 };
 
 
-/* -------------- MAILBOX ------------- */
-
-/**
- * @brief Initializes the queue
- */
-static void mailboxInit(Example * this) {
-    int err = sprintf(this->queueName, NAME_MQ_BOX, exampleCounter);
-    TRACE("[MAILBOX] Defined the Queue name : %s\n", this->queueName)
-    STOP_ON_ERROR(err < 0, "Error when setting the queueName")
-
-    TRACE("[MAILBOX] Oppening the mailbox %s\n", this->queueName)
-    /* Destroying the mailbox if it already exists */
-    mq_unlink(this->queueName);
-
-    /* Creating and opening the mailBox */
-
-    /* Initializes the queue attributes */
-    struct mq_attr attr;
-    attr.mq_flags = 0;
-    attr.mq_maxmsg = MQ_MAX_MESSAGES;		// Size of the queue
-    attr.mq_msgsize = sizeof(Wrapper);		// Max size of a message
-    attr.mq_curmsgs = 0;
-
-    // Creating the queue
-    mqd_t mq;
-    mq = mq_open(this->queueName, O_CREAT | O_RDWR, 0600, &attr); // 600 = rw for owner and nothing else
-    STOP_ON_ERROR(mq == -1, "Error when opening the mailbox %s", this->queueName)
-    this->mq = mq;
-}
-
-/**
- * @brief Destroys the queue
- */
-static void mailboxClose(Example *this) {
-    int err = mq_close(this->mq);
-    STOP_ON_ERROR(err != 0, "Error when closing the mqueue during initialisation")
-    /* Destruction of the queue */
-    err = mq_unlink(this->queueName);
-    STOP_ON_ERROR(err == -1, "Error when unlinking the mailbox %s", this->queueName)
-}
-
-/**
- * @brief Sends a message to the queue
- *
- * @note This function is blocking if the queue is full
- * @param msg message
- */
-static void mailboxSendMsg(Example *this, Msg msg) {
-    TRACE("[MAILBOX] Sending message to the mailbox %s\n", this->queueName)
-
-    Wrapper wrapper;
-    wrapper.msg = msg;
-
-    int err = mq_send(this->mq, wrapper.toString, sizeof(Wrapper), 0);
-    STOP_ON_ERROR(err == -1, "Error when sending textOnly message")
-}
-
-/**
- * @brief Sends a stop EVENT to the queue
- *
- * @note There is no specific content in the message, so there
- * is no need to specify any argument.
- */
-static void mailboxSendStop(Example *this) {
-    TRACE("[MAILBOX] Sending stop EVENT to the queue %s\n", this->queueName)
-    Msg msg = {.event = E_KILL};
-    mailboxSendMsg(this, msg);
-}
-
-/**
- * @brief Receives a message from the queue
- *
- * @note This function is blocking if the queue is empty
- * @param wrapper address of a message buffer
- */
-static void mailboxReceive(Example *this, Wrapper *wrapper) {
-    TRACE("[MAILBOX] Receiving a message from %s\n", this->queueName)
-    int err = mq_receive(this->mq, wrapper->toString, sizeof(Wrapper), 0);
-    STOP_ON_ERROR(err == -1, "Error when receiving a message : ")
-}
-
-
 /* ----------------------- ACTIONS FUNCTIONS ----------------------- */
 
 // TODO : Write all the ACTION functions
@@ -325,21 +210,27 @@ static void ActionKill(Example * this) {
 // TODO : write the EVENTs functions
 
 void ExampleEventOne(Example * this, int param) {
-    Msg message = {
-            .event = E_EXAMPLE1,
-            .param2 = param
+    Msg msg = {
+        .event = E_EXAMPLE1,
+        .param2 = param
     };
 
-    mailboxSendMsg(this, message);
+    Wrapper wrapper;
+    wrapper.msg = msg;
+
+    mailboxSendMsg(this->mb, wrapper.toString);
 }
 
 void ExampleEventTwo(Example * this, int param) {
-    Msg message = {
-            .event = E_EXAMPLE2,
-            .param2 = param
+    Msg msg = {
+        .event = E_EXAMPLE2,
+        .param2 = param
     };
 
-    mailboxSendMsg(this, message);
+    Wrapper wrapper;
+    wrapper.msg = msg;
+
+    mailboxSendMsg(this->mb, wrapper.toString);
 }
 
 /*
@@ -364,10 +255,10 @@ static void ExampleRun(Example * this) {
     STATE state;
     Wrapper wrapper;
 
-    TRACE("RUN - Queue name : %s\n", this->queueName)
+    TRACE("RUN - Queue name : %s\n", this->mb->queueName)
 
     while (this->state != S_DEATH) {
-        mailboxReceive(this, &wrapper); ///< Receiving an EVENT from the mailbox
+        mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
 
         if (wrapper.msg.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
             this->state = S_DEATH;
@@ -375,10 +266,10 @@ static void ExampleRun(Example * this) {
         } else {
             action = stateMachine[this->state][wrapper.msg.event].action;
 
-            TRACE("Action %s\n", ACTIONtoString[action])
+            TRACE("Action %s\n", ACTION_toString[action])
 
             state = stateMachine[this->state][wrapper.msg.event].nextState;
-            TRACE("State %s\n", STATEtoString[state])
+            TRACE("State %s\n", STATE_toString[state])
 
             if (state != S_FORGET) {
                 this->msg = wrapper.msg;
@@ -396,9 +287,9 @@ Example * ExampleNew() {
     exampleCounter ++; ///< Incrementing the instances counter.
     TRACE("ExampleNew function \n")
     Example * this = (Example *) malloc(sizeof(Example));
+    this->mb = mailboxInit("Example", exampleCounter, sizeof(Msg));
     this->state = S_IDLE;
 
-    mailboxInit(this);
     //this->wd = WatchdogConstruct(1000, &ExampleTimeout, this); ///< Declaration of a watchdog.
 
     int err = sprintf(this->nameTask, NAME_TASK, exampleCounter);
@@ -420,7 +311,12 @@ int ExampleStart(Example * this) {
 
 int ExampleStop(Example * this) {
     // TODO : stop the object with it particularities
-    mailboxSendStop(this);
+    Msg msg = { .event = E_KILL };
+
+    Wrapper wrapper;
+    wrapper.msg = msg;
+
+    mailboxSendStop(this->mb, wrapper.toString);
     TRACE("Waiting for the thread to terminate \n")
 
     int err = pthread_join(this->threadId, NULL);
@@ -433,7 +329,7 @@ int ExampleStop(Example * this) {
 int ExampleFree(Example * this) {
     // TODO : free the object with it particularities
     TRACE("ExampleFree function \n")
-    mailboxClose(this);
+    mailboxClose(this->mb);
 
     free(this);
 

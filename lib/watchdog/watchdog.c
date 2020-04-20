@@ -40,7 +40,7 @@
  */
 #define TIME_UNIT 1000 // Miliseconds
 
-#include "../util.h"
+#include "util.h"
 #include "watchdog.h"
 #include <malloc.h>
 #include <time.h>
