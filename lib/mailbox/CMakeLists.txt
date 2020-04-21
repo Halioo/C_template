@@ -16,5 +16,6 @@ get_property(loc_LIB_DIR GLOBAL PROPERTY LIB_DIR)
 
 # Create the static library
 add_library(${LIB_NAME} ${SRC})
+target_link_libraries(${LIB_NAME} rt)
 target_include_directories(${LIB_NAME} PRIVATE ${loc_LIB_DIR})
 set_target_properties(${LIB_NAME} PROPERTIES LINKER_LANGUAGE C)
