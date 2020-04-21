@@ -19,4 +19,4 @@ all: $(OBJ)
 	ar -rv $(ARCHIVE) $(OBJ)
 
 %.o: %.c
-	$(CC) -I../include/ -lmqueue -c $< -o $@
+	$(CC) -I../include/ -lrt -c $< -o $@

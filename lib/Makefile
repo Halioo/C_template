@@ -1,9 +1,12 @@
 #
-# Hello Robot C - Makefile des sources du projet.
+# Template de code C - Makefile des librairies du projet
 #
 # @author Matthias Brun, Clément Puybareau
+# @copyright CCBY 4.0
 #
 
+# Lib packages
+# TODO append your package name to the list
 LIBRARIES = watchdog mailbox
 
 # Inclusion depuis le niveau du package.

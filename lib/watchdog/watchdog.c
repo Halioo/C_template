@@ -40,12 +40,14 @@
  */
 #define TIME_UNIT 1000 // Miliseconds
 
-#include "util.h"
-#include "watchdog.h"
+
 #include <malloc.h>
 #include <time.h>
 #include <signal.h>
 #include <unistd.h>
+
+#include "util.h"
+#include "watchdog.h"
 
 struct Watchdog_t
 {

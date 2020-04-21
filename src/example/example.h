@@ -1,7 +1,7 @@
 /**
  * @file example.h
  *
- * @brief This is an example of active class.
+ * @brief This is an example of active class
  *
  * You can copy and paste this example to create an active class.
  * To use it :
@@ -16,8 +16,11 @@
  *
  * You must code and document everything in english.
  *
- * @date 13/04/2020
- * @author Thomas CRAVIC, Clément PUYBAREAU
+ * @date April 2020
+ *
+ * @authors Thomas CRAVIC, Clément PUYBAREAU, Louis FROGER
+ *
+ * @version 1.0
  *
  * @copyright CCBY 4.0
  */
@@ -25,7 +28,7 @@
 #ifndef EXAMPLE_H
 #define EXAMPLE_H
 
-#include "watchdog.h"
+#include <watchdog.h>
 
 typedef struct Example_t Example;
 

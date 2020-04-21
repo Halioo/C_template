@@ -2,14 +2,18 @@
  * @file example.c
  *
  * @brief This is an example of an active class
- * @date 13/04/2020
- * @author Thomas CRAVIC, Nathan LE GRANVALLET, Clément PUYBAREAU
+ *
+ * @date April 2020
+ *
+ * @authors Thomas CRAVIC, Nathan LE GRANVALLET, Clément PUYBAREAU, Louis FROGER
+ *
+ * @version 1.0
  *
  * @copyright CCBY 4.0
  */
 
 #include <pthread.h>
-#include "mailbox.h"
+#include <mailbox.h>
 
 #include "util.h"
 #include "example.h"
@@ -92,11 +96,7 @@ typedef struct {
 /**
  * @brief Wrapper enum. It is used to send EVENTs and parameters in a mailBox.
  */
-typedef union {
-    Msg msg; ///< Message sent, interpreted as a structure
-    char toString[sizeof(Msg)]; ///< Message sent, interpreted as a char array
-} Wrapper;
-
+wrapperOf(Msg)
 
 /**
  * @brief Structure of the Example object
@@ -207,7 +207,7 @@ static void ActionKill(Example * this) {
 
 
 /*----------------------- EVENT FUNCTIONS -----------------------*/
-// TODO : write the EVENTs functions
+// TODO : write the events functions
 
 void ExampleEventOne(Example * this, int param) {
     Msg msg = {
@@ -216,7 +216,7 @@ void ExampleEventOne(Example * this, int param) {
     };
 
     Wrapper wrapper;
-    wrapper.msg = msg;
+    wrapper.data = msg;
 
     mailboxSendMsg(this->mb, wrapper.toString);
 }
@@ -228,7 +228,7 @@ void ExampleEventTwo(Example * this, int param) {
     };
 
     Wrapper wrapper;
-    wrapper.msg = msg;
+    wrapper.data = msg;
 
     mailboxSendMsg(this->mb, wrapper.toString);
 }
@@ -260,19 +260,19 @@ static void ExampleRun(Example * this) {
     while (this->state != S_DEATH) {
         mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
 
-        if (wrapper.msg.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
+        if (wrapper.data.event == E_KILL) { // If we received the stop EVENT, we do nothing and we change the STATE to death.
             this->state = S_DEATH;
 
         } else {
-            action = stateMachine[this->state][wrapper.msg.event].action;
+            action = stateMachine[this->state][wrapper.data.event].action;
 
             TRACE("Action %s\n", ACTION_toString[action])
 
-            state = stateMachine[this->state][wrapper.msg.event].nextState;
+            state = stateMachine[this->state][wrapper.data.event].nextState;
             TRACE("State %s\n", STATE_toString[state])
 
             if (state != S_FORGET) {
-                this->msg = wrapper.msg;
+                this->msg = wrapper.data;
                 actionPtr[action](this);
                 this->state = state;
             }
@@ -314,7 +314,7 @@ int ExampleStop(Example * this) {
     Msg msg = { .event = E_KILL };
 
     Wrapper wrapper;
-    wrapper.msg = msg;
+    wrapper.data = msg;
 
     mailboxSendStop(this->mb, wrapper.toString);
     TRACE("Waiting for the thread to terminate \n")

@@ -54,7 +54,6 @@ extern void mailboxClose(Mailbox * this) {
  */
 extern void mailboxSendMsg(Mailbox * this, char * msg) {
     TRACE("[MAILBOX] Sending message to the mailbox %s\n", this->queueName)
-    TRACE("MSG : %s\n", msg)
     int err = mq_send(this->mq, msg, sizeof(msg), 0);
     STOP_ON_ERROR(err == -1, "Error when sending textOnly message")
 }
@@ -78,7 +77,6 @@ extern void mailboxSendStop(Mailbox * this, char * msg) {
  */
 extern void mailboxReceive(Mailbox * this, char * msg) {
     TRACE("[MAILBOX] Receiving a message from %s\n", this->queueName)
-    TRACE("%s\n", msg)
     int err = mq_receive(this->mq, msg, MAX_MESSAGE_LENGTH, 0);
     STOP_ON_ERROR(err == -1, "Error when receiving a message : ")
 }

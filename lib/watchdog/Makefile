@@ -1,5 +1,5 @@
 #
-# Hello Robot C - Makefile des sources du projet.
+# Template de code C - Watchdog library
 #
 # @author Matthias Brun, Clément Puybareau
 #

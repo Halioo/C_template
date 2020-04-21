@@ -1,11 +1,11 @@
 #
-# Robot v1 C - Makefile principal.
+# Template de code C - Makefile principal
 #
-# @author Matthias Brun, adapté par Jérôme Delatour
+# @author Matthias Brun, Jérôme Delatour, Clément Puybareau
+# @copyright CCBY 4.0
 #
 
 # Organisation des sources.
-#
 
 export SRCDIR = src
 export LIBDIR = $(realpath lib)
@@ -19,7 +19,6 @@ SUBDIRS += $(SRCDIR)
 #
 
 # Compilateur.
-
 export CC = gcc
 
 # options de compilation
@@ -42,9 +41,7 @@ export LDFLAGS += -L$(LIBDIR)/mailbox/
 export LDFLAGS += -lwatchdog -lmailbox
 export LDFLAGS += -lrt -pthread
 
-#
 # Définitions du binaire à générer.
-#
 export PROG = $(BINDIR)/prog
 
 #
@@ -53,7 +50,6 @@ export PROG = $(BINDIR)/prog
 
 # Compilation récursive.
 all:
-
 	@for i in $(SUBDIRS); do (cd $$i; make $@); done
 
 # Nettoyage.
