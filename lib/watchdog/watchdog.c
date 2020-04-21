@@ -42,20 +42,12 @@
 
 
 #include <malloc.h>
-#include <time.h>
 #include <signal.h>
 #include <unistd.h>
 
 #include "util.h"
 #include "watchdog.h"
 
-struct Watchdog_t
-{
-    timer_t timer; // POSIX Timer
-    uint32_t myDelay; /**< configured delay */
-    WatchdogCallback myCallback; /**< function to be called at delay expiration */
-    void * caller; ///< Caller instance of the watchdog
-};
 
 /**
  * @brief Calls the watchdog callback when the delay of the timer expires

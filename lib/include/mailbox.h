@@ -1,15 +1,18 @@
-//
-// Created by cleme on 19/04/2020.
-//
+/**
+ * @file mailbox.h
+ *
+ * @brief Mailbox class that allows to re-use
+ *
+ * @date April 2020
+ *
+ * @authors Thomas CRAVIC, Nathan LE GRANVALLET, Clément PUYBAREAU, Louis FROGER
+ *
+ * @copyright CCBY 4.0
+ */
 
 #ifndef MAILBOX_H
 #define MAILBOX_H
 
-#include <stdio.h>
-#include <pthread.h>
-#include <mqueue.h>
-
-#include "util.h"
 
 /**
  * @def Name of the mailboxes. Each instance will have this name,
@@ -40,11 +43,20 @@
 #define MQ_MAX_MESSAGES (10)
 
 
+#include <stdio.h>
+#include <pthread.h>
+#include <mqueue.h>
+
+#include "util.h"
+
+
+/**
+ * The mailbox structure
+ */
 typedef struct mailbox_t {
     char queueName[SIZE_BOX_NAME];
     mqd_t mq;
 } Mailbox;
-
 
 /**
  * @brief Initializes the queue
@@ -54,7 +66,7 @@ extern Mailbox * mailboxInit(char * objName, int objCounter, __syscall_slong_t m
 /**
  * @brief Destroys the queue
  */
-extern void mailboxClose(Mailbox *this);
+extern void mailboxClose(Mailbox * this);
 
 /**
  * @brief Sends a message to the queue

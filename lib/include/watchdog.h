@@ -36,6 +36,9 @@
 #define WATCHDOG_H
 
 #include <stdint.h>
+#include <time.h>
+
+
 
 /**
  * The watchdog structure
@@ -48,6 +51,13 @@ typedef struct Watchdog_t Watchdog;
  * @param this the watchdog which have called this function
  */
 typedef void (*WatchdogCallback)(Watchdog *this, void * caller);
+
+struct Watchdog_t {
+    timer_t timer; // POSIX Timer
+    uint32_t myDelay; /**< configured delay */
+    WatchdogCallback myCallback; /**< function to be called at delay expiration */
+    void * caller; ///< Caller instance of the watchdog
+};
 
 /**
  * @brief Watchdog's constructor.
