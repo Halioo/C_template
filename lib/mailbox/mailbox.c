@@ -1,23 +1,50 @@
-//
-// Created by cleme on 19/04/2020.
-//
-
+/**
+ * @file mailbox.c
+ *
+ * @brief Mailbox class that allows to create multiple mailboxes based on mqueue library
+ *
+ * @date April 2020
+ *
+ * @authors TODO : Add author(s)
+ *
+ * @copyright CCBY 4.0
+ * Based on templates written by Thomas CRAVIC, Nathan LE GRANVALLET, Clément PUYBAREAU, Louis FROGER
+ */
 
 #include "mailbox.h"
+#include "errno.h"
+
+struct mailbox_t {
+    char queueName[SIZE_BOX_NAME];
+    mqd_t mq;
+    size_t mqSize;
+};
 
 /**
  * @brief Initializes the queue
  */
 extern Mailbox * mailboxInit(char * objName, int objCounter, __syscall_slong_t maxMsgSize) {
     Mailbox * this = (Mailbox *) malloc(sizeof(Mailbox));
-    int err = sprintf(this->queueName, NAME_MQ_BOX, objName, objCounter);
+    sprintf(this->queueName, NAME_MQ_BOX, objName, objCounter);
 
     TRACE("[MAILBOX] Defined the Queue name : %s\n", this->queueName)
-    STOP_ON_ERROR(err < 0, "Error when setting the queueName")
 
     TRACE("[MAILBOX] Oppening the mailbox %s\n", this->queueName)
     /* Destroying the mailbox if it already exists */
-    mq_unlink(this->queueName);
+    errno = 0;
+    int err = mq_unlink(this->queueName);
+    if (err == -1) {
+        if (errno == EACCES) {
+            TRACE("ERROR : mq_unlink failed -> no permission to unlink the queue (continue)\n");
+        } else if (errno == ENAMETOOLONG) {
+            TRACE("ERROR : mq_unlink failed -> name too long (continue)\n");
+        } else if (errno == ENOENT) {
+            TRACE("ERROR : mq_unlink failed -> no message queue to unlink (continue)\n");
+        } else {
+            TRACE("ERROR : mq_unlink failed (exiting)\n");
+            exit(EXIT_FAILURE);
+        }
+    }
 
     /* Creating and opening the mailbox */
 
@@ -29,8 +56,13 @@ extern Mailbox * mailboxInit(char * objName, int objCounter, __syscall_slong_t m
     attr.mq_curmsgs = 0;
 
     // Creating the queue
+    this->mqSize = maxMsgSize;
+    errno = 0;
     this->mq = mq_open(this->queueName, O_CREAT | O_RDWR, 0600, &attr); // 600 = rw for owner and nothing else
-    STOP_ON_ERROR(this->mq == -1, "Error when opening the mailbox %s", this->queueName)
+    if(this->mq == -1){
+        TRACE("ERROR : mq_open failed (exiting)\n");
+        exit(EXIT_FAILURE);
+    }
     return this;
 }
 
@@ -38,11 +70,26 @@ extern Mailbox * mailboxInit(char * objName, int objCounter, __syscall_slong_t m
  * @brief Destroys the queue
  */
 extern void mailboxClose(Mailbox * this) {
+    errno = 0;
     int err = mq_close(this->mq);
-    STOP_ON_ERROR(err != 0, "Error when closing the mqueue during initialisation")
+    if (err == -1) {
+        TRACE("ERROR : mq_close failed -> wrong mq descriptor (continue)\n");
+    }
     /* Destruction of the queue */
+    errno = 0;
     err = mq_unlink(this->queueName);
-    STOP_ON_ERROR(err == -1, "Error when unlinking the mailbox %s", this->queueName)
+    if (err == -1) {
+        if (errno == EACCES) {
+            TRACE("ERROR : mq_unlink failed -> no permission to unlink the queue (continue)\n");
+        } else if (errno == ENAMETOOLONG) {
+            TRACE("ERROR : mq_unlink failed -> name too long (continue)\n");
+        } else if (errno == ENOENT) {
+            TRACE("ERROR : mq_unlink failed -> no message queue to unlink (continue)\n");
+        } else {
+            TRACE("ERROR : mq_unlink failed (exiting)\n");
+            exit(EXIT_FAILURE);
+        }
+    }
     free(this);
 }
 
@@ -53,9 +100,22 @@ extern void mailboxClose(Mailbox * this) {
  * @param msg message
  */
 extern void mailboxSendMsg(Mailbox * this, char * msg) {
-    TRACE("[MAILBOX] Sending message to the mailbox %s\n", this->queueName)
-    int err = mq_send(this->mq, msg, sizeof(msg), 0);
-    STOP_ON_ERROR(err == -1, "Error when sending textOnly message")
+    errno = 0;
+    ssize_t err = mq_send(this->mq, msg, this->mqSize, 0);
+    if(err == -1){
+        if(errno == EAGAIN){
+            TRACE("ERROR : mq_send failed -> the queue is full (exiting)\n");
+        }else if (errno == EMSGSIZE){
+            TRACE("ERROR : mq_send failed -> msg length is greater than the mq_msgsize attribute of the queue (exiting)\n");
+        }else if (errno == EBADF){
+            TRACE("ERROR : mq_send failed -> wrong mq given or mq not opened for writing (exiting)\n");
+        }else{
+            TRACE("ERROR : mq_send failed (exiting)\n");
+        }
+        exit(EXIT_FAILURE);
+    }else{
+        TRACE("[MAILBOX] Sending message to the mailbox %s\n", this->queueName)
+    }
 }
 
 /**
@@ -76,7 +136,18 @@ extern void mailboxSendStop(Mailbox * this, char * msg) {
  * @param wrapper address of a message buffer
  */
 extern void mailboxReceive(Mailbox * this, char * msg) {
-    TRACE("[MAILBOX] Receiving a message from %s\n", this->queueName)
-    int err = mq_receive(this->mq, msg, MAX_MESSAGE_LENGTH, 0);
-    STOP_ON_ERROR(err == -1, "Error when receiving a message : ")
+    errno = 0;
+    ssize_t err = mq_receive(this->mq, msg, this->mqSize, 0);
+    if(err == -1) {
+        if (errno == EMSGSIZE) {
+            TRACE("ERROR : mq_receive failed -> msg length is less than the mq_msgsize attribute of the queue (exiting)\n");
+        } else if (errno == EBADF) {
+            TRACE("ERROR : mq_receive failed -> wrong mq given or mq or not opened for reading (exiting)\n");
+        } else {
+            TRACE("ERROR : mq_receive failed (exiting)\n");
+        }
+        exit((EXIT_FAILURE));
+    }else {
+        TRACE("[MAILBOX] Receiving a message from %s\n", this->queueName)
+    }
 }

@@ -14,6 +14,7 @@
 
 
 #include "example/example.h"
+#include "stdio.h"
 
 int main() {
 
@@ -25,4 +26,5 @@ int main() {
 
      ExampleStop(test);
      ExampleFree(test);
+
 }

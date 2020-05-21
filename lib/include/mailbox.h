@@ -1,11 +1,11 @@
 /**
  * @file mailbox.h
  *
- * @brief Mailbox class that allows to re-use
+ * @brief Mailbox class that allows to create multiple mailboxes based on mqueue library
  *
  * @date April 2020
  *
- * @authors Thomas CRAVIC, Nathan LE GRANVALLET, Clément PUYBAREAU, Louis FROGER
+ * @authors Thomas CRAVIC, Nathan LE GRANVALLET, Clément PUYBAREAU, Louis FROGER, Guirec PLANCHAIS
  *
  * @copyright CCBY 4.0
  */
@@ -23,7 +23,7 @@
 /**
  * @def Size of the mailbox name
  */
-#define SIZE_BOX_NAME 20
+#define SIZE_BOX_NAME 30
 
 /**
  * @def MAX_MESSAGE_LENGTH
@@ -53,10 +53,7 @@
 /**
  * The mailbox structure
  */
-typedef struct mailbox_t {
-    char queueName[SIZE_BOX_NAME];
-    mqd_t mq;
-} Mailbox;
+typedef struct mailbox_t Mailbox;
 
 /**
  * @brief Initializes the queue

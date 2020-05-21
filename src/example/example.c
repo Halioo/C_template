@@ -255,8 +255,6 @@ static void ExampleRun(Example * this) {
     STATE state;
     Wrapper wrapper;
 
-    TRACE("RUN - Queue name : %s\n", this->mb->queueName)
-
     while (this->state != S_DEATH) {
         mailboxReceive(this->mb, wrapper.toString); ///< Receiving an EVENT from the mailbox
 
